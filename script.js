@@ -170,4 +170,65 @@ document.addEventListener('DOMContentLoaded', function() {
         card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(card);
     });
+
+    // Digital Rain Animation
+    const canvas = document.getElementById('digital-rain');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        console.log('Digital rain canvas found and context created');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            console.log('Canvas resized to:', canvas.width, 'x', canvas.height);
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Rain animation properties
+        const fontSize = 14;
+        let columns = Math.floor(canvas.width / fontSize);
+        let drops = [];
+        
+        // Initialize drops
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+        }
+        
+        // Characters to use (1s and 0s)
+        const chars = ['1', '0'];
+
+        function drawRain() {
+            // Clear with fade effect
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Set font
+            ctx.font = `${fontSize}px monospace`;
+            ctx.fillStyle = '#00ff00';
+            
+            // Draw rain
+            for (let i = 0; i < drops.length; i++) {
+                const char = chars[Math.floor(Math.random() * chars.length)];
+                const x = i * fontSize;
+                const y = drops[i] * fontSize;
+                
+                ctx.fillText(char, x, y);
+                
+                // Reset drop
+                if (y > canvas.height || Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        // Start animation
+        console.log('Starting digital rain animation');
+        setInterval(drawRain, 50);
+    } else {
+        console.error('Digital rain canvas not found!');
+    }
 });
