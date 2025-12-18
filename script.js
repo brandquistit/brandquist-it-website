@@ -1,7 +1,9 @@
 // Navigation functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize EmailJS
-    emailjs.init("AKSlYmJrq4jF8KBDm"); // Replace with your EmailJS public key
+    // Initialize EmailJS only if available (for pages that include it)
+    if (typeof emailjs !== 'undefined') {
+        emailjs.init("AKSlYmJrq4jF8KBDm"); // Replace with your EmailJS public key
+    }
 
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
@@ -24,25 +26,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Smooth scrolling for navigation links
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
             const targetId = this.getAttribute('href');
-            const targetSection = document.querySelector(targetId);
             
-            if (targetSection) {
-                const offsetTop = targetSection.offsetTop - 70; // Account for fixed header
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
-                });
+            // Only handle smooth scrolling for hash links (internal page navigation)
+            if (targetId && targetId.startsWith('#')) {
+                e.preventDefault();
+                const targetSection = document.querySelector(targetId);
+                
+                if (targetSection) {
+                    const offsetTop = targetSection.offsetTop - 70; // Account for fixed header
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
             }
+            // For regular links (like ../index.html), let the browser handle navigation normally
         });
     });
 
-    // Contact form handling with EmailJS
+    // Contact form handling with EmailJS (only if EmailJS is available)
     const contactForm = document.getElementById('contactForm');
     
-    if (contactForm) {
-        console.log('Contact form found');
+    if (contactForm && typeof emailjs !== 'undefined') {
+        console.log('Contact form found and EmailJS available');
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             console.log('Form submitted');
@@ -177,25 +184,50 @@ document.addEventListener('DOMContentLoaded', function() {
         const ctx = canvas.getContext('2d');
         console.log('Digital rain canvas found and context created');
 
+        // Rain animation properties
+        const fontSize = 14;
+        let drops = [];
+
         // Set canvas size
         function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            console.log('Canvas resized to:', canvas.width, 'x', canvas.height);
+            // Get the hero section dimensions - support both home and service pages
+            const heroSection = canvas.parentElement;
+            const isServicePage = heroSection.classList.contains('service-hero');
+            
+            if (isServicePage) {
+                // For service pages, use viewport dimensions
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            } else {
+                // For home page, use parent element dimensions
+                canvas.width = heroSection.offsetWidth;
+                canvas.height = heroSection.offsetHeight;
+            }
+            
+            console.log('Canvas resized to:', canvas.width, 'x', canvas.height, 'Service page:', isServicePage);
+            
+            // Reinitialize drops for new canvas size
+            const newColumns = Math.floor(canvas.width / fontSize);
+            drops = [];
+            for (let i = 0; i < newColumns; i++) {
+                drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+            }
         }
         
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', resizeCanvas);
 
-        // Rain animation properties
-        const fontSize = 14;
-        let columns = Math.floor(canvas.width / fontSize);
-        let drops = [];
-        
         // Initialize drops
-        for (let i = 0; i < columns; i++) {
-            drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+        function initDrops() {
+            const columns = Math.floor(canvas.width / fontSize);
+            drops = [];
+            for (let i = 0; i < columns; i++) {
+                drops[i] = Math.floor(Math.random() * canvas.height / fontSize);
+            }
         }
+        
+        initDrops();
         
         // Characters to use (1s and 0s)
         const chars = ['1', '0'];
@@ -207,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Set font
             ctx.font = `${fontSize}px monospace`;
-            ctx.fillStyle = '#00ff00';
+            ctx.fillStyle = '#00d4ff';
             
             // Draw rain
             for (let i = 0; i < drops.length; i++) {
